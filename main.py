@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import sys
 import re
 import csv
@@ -9,6 +10,7 @@ from playwright.async_api import async_playwright, Error
 from bs4 import BeautifulSoup
 
 from prompt_toolkit import prompt
+from prompt_toolkit.shortcuts import yes_no_dialog
 
 system = sys.platform
 if system.startswith("win"):
@@ -32,7 +34,7 @@ def read_file():
     with open("mc-number.csv") as f:
         r = csv.reader(f)
         for row in r:
-            carriers.append({"name": row[0], "ID": row[1]})
+            carriers.append({"ID": row[0], "name": row[1]})
 
 
 async def fetch_page():
@@ -48,7 +50,8 @@ async def fetch_page():
             await browser.close()
     except Error as e:
         if "playwright install" in str(e):
-            print()
+            print("Error: Playwright has no browsers installed")
+            
             subprocess.run(["playwright", "install"], check=True)
             # p
 
