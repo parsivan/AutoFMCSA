@@ -1,0 +1,18 @@
+[project]
+name = "Automated FMCSA"
+version = "0.1.0"
+description = "Creates a CSV file with MC/DOT number and get desired data from online database"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "beautifulsoup4>=4.14.2",
+    "playwright>=1.55.0",
+    "prompt-toolkit>=3.0.52",
+    "selenium>=4.38.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.0",
+    "ruff>=0.14.4",
+]
