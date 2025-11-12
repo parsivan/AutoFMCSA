@@ -1,5 +1,5 @@
 [project]
-name = "Automated FMCSA"
+name = "Automated-FMCSA"
 version = "0.1.0"
 description = "Creates a CSV file with MC/DOT number and get desired data from online database"
 readme = "README.md"
@@ -16,3 +16,10 @@ dev = [
     "pytest>=9.0.0",
     "ruff>=0.14.4",
 ]
+
+[tool.ty]
+skip-string-normalization = true  # optional, like Black's default
+
+[tool.ruff]
+select = ["E", "F", "W", "C90"]  # typical style/lint codes
+ignore = ["E501"]                # example: ignore long line warnings
