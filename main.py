@@ -27,19 +27,30 @@ else:
 """
 
 keys = ("MC_MX", "USDOT")
+search_text = "Motor Vehicles"
+
 carriers = []
+data = []
 soup = None
 url = f"https://safer.fmcsa.dot.gov/query.asp?query_type=queryCarrierSnapshot&query_param={key}&query_string={id}"
 
 
-def read_file():
+def read_file() -> None:
     with open("mc-number.csv") as f:
         r = csv.reader(f)
         for row in r:
             carriers.append({"ID": row[0], "name": row[1]})
 
 
-async def fetch_page():
+def write_file(data) -> None:
+    with open("output.csv", "w") as f:
+        writer = csv.DictWriter(f, fieldnames=["ID", "Name", "Motor Vehicles"])
+        writer.writeheader()
+        writer.writerows(data)
+
+
+async def fetch_page() -> None:
+    global soup
     while True:
         try:
             async with async_playwright() as p:
@@ -47,9 +58,8 @@ async def fetch_page():
                 page = await browser.new_page()
                 await page.wait_for_load_state("networkidle")
                 html = await page.content()
-                # Optional: parse HTML with BeautifulSoup
-                soup = BeautifulSoup(html, "html.parser")
-                print(soup.prettify())
+                soup = BeautifulSoup(html, "html.parser")  # Optional
+                # print(soup.prettify())
                 await browser.close()
         except Error as e:
             if "playwright install" in str(e):
@@ -72,7 +82,7 @@ async def fetch_page():
 
 
 def yes_no_dialog(qstr: str) -> bool:
-    """ "Ask the user for a YES or NO question. Returns True/False"""
+    """Ask the user for a YES or NO question. Returns True/False"""
     while True:
         answer = prompt(
             message=qstr,
@@ -86,8 +96,26 @@ def yes_no_dialog(qstr: str) -> bool:
             print("Please only type y/yes or n/no")
 
 
-def find():
-    re.search()
+def find_html(source: str) -> dict:
+    pattern = re.compile(
+        rf'<td class="queryfield">\s*(.*?)\s*</td>\s*<td>.*?({re.escape(search_text)}).*?</td>',
+        re.DOTALL,
+    )
+    if matches := pattern.search(source):
+        option = {matches.group(2): matches.group(1)}
+        return option
+
+
+def boolify_options(options: dict) -> dict:
+    value = options.get(search_text, "")
+    options[search_text] = value == "X"
+    return options
+    # if options[search_text] == "X":
+    #     options[search_text] = True
+    #     return options
+    # else:
+    #     options[search_text] = False
+    #     return options
 
 
 def main(): ...
