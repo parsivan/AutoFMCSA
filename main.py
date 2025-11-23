@@ -30,32 +30,35 @@ keys = ("MC_MX", "USDOT")
 search_text = "Motor Vehicles"
 
 carriers = []
-data = []
+output_data = []
 soup = None
-url = f"https://safer.fmcsa.dot.gov/query.asp?query_type=queryCarrierSnapshot&query_param={key}&query_string={id}"
 
 
 def read_file() -> None:
-    with open("mc-number.csv") as f:
+    """Read input csv file and store it in a list"""
+    with open("input.csv") as f:
         r = csv.reader(f)
         for row in r:
             carriers.append({"ID": row[0], "name": row[1]})
 
 
-def write_file(data) -> None:
+def write_file(data: list) -> None:
+    """Write the output data to a csv"""
     with open("output.csv", "w") as f:
         writer = csv.DictWriter(f, fieldnames=["ID", "Name", "Motor Vehicles"])
         writer.writeheader()
         writer.writerows(data)
 
 
-async def fetch_page() -> None:
+async def fetch_page(url: str) -> None:
+    """open the link with the key and id and export the html of the page to soup var"""
     global soup
     while True:
         try:
             async with async_playwright() as p:
                 browser = await p.chromium.launch()
                 page = await browser.new_page()
+                await page.goto(url)
                 await page.wait_for_load_state("networkidle")
                 html = await page.content()
                 soup = BeautifulSoup(html, "html.parser")  # Optional
@@ -82,6 +85,7 @@ async def fetch_page() -> None:
 
 
 def pick_key() -> str:
+    """ask user to pick between mc and usdot number"""
     while True:
         print("Which ID type does your CSV contain?")
         print("1:", keys[0])
@@ -110,6 +114,7 @@ def yes_no_dialog(qstr: str) -> bool:
 
 
 def find_html(source: str) -> dict:
+    """find option in the html and check if it has a value"""
     pattern = re.compile(
         rf'<td class="queryfield">\s*(.*?)\s*</td>\s*<td>.*?({re.escape(search_text)}).*?</td>',
         re.DOTALL,
@@ -134,11 +139,33 @@ def boolify_options(options: dict) -> dict:
 async def process_carriers():
     key = pick_key()
     for carrier in carriers:
-        id = carrier["ID"]
+        cid = carrier["ID"]
+        url = f"https://safer.fmcsa.dot.gov/query.asp?query_type=queryCarrierSnapshot&query_param={key}&query_string={cid}"
+
+        await fetch_page(url)
+
+        html = str(soup)
+        found = find_html(html)
+        if found:
+            found = boolify_options(found)
+            motor_val = found[search_text]
+        else:
+            motor_val = False
+
+        output_data.append(
+            {
+                "ID": carrier["ID"],
+                "Name": carrier["Name"],
+                "Motor Vehicles": motor_val,
+            }
+        )
 
 
 def main():
+    read_file()
     asyncio.run(process_carriers())
+    write_file(output_data)
+    print("Done. Output saved to output.csv")
 
 
 if __name__ == "__main__":
