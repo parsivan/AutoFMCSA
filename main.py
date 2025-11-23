@@ -31,15 +31,16 @@ search_text = "Motor Vehicles"
 
 carriers = []
 output_data = []
+key = None
 soup = None
 
 
 def read_file() -> None:
     """Read input csv file and store it in a list"""
     with open("input.csv") as f:
-        r = csv.reader(f)
+        r = csv.DictReader(f)
         for row in r:
-            carriers.append({"ID": row[0], "name": row[1]})
+            carriers.append(row)
 
 
 def write_file(data: list) -> None:
@@ -137,7 +138,6 @@ def boolify_options(options: dict) -> dict:
 
 
 async def process_carriers():
-    key = pick_key()
     for carrier in carriers:
         cid = carrier["ID"]
         url = f"https://safer.fmcsa.dot.gov/query.asp?query_type=queryCarrierSnapshot&query_param={key}&query_string={cid}"
@@ -162,7 +162,9 @@ async def process_carriers():
 
 
 def main():
+    global key
     read_file()
+    key = pick_key()
     asyncio.run(process_carriers())
     write_file(output_data)
     print("Done. Output saved to output.csv")
