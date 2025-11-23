@@ -81,6 +81,19 @@ async def fetch_page() -> None:
                     sys.exit(1)
 
 
+def pick_key() -> str:
+    while True:
+        print("Which ID type does your CSV contain?")
+        print("1:", keys[0])
+        print("2:", keys[1])
+        choice = prompt("Enter 1 or 2: ").strip()
+        if choice == "1":
+            return keys[0]
+        if choice == "2":
+            return keys[1]
+        print("Only enter 1 or 2.")
+
+
 def yes_no_dialog(qstr: str) -> bool:
     """Ask the user for a YES or NO question. Returns True/False"""
     while True:
@@ -118,7 +131,14 @@ def boolify_options(options: dict) -> dict:
     #     return options
 
 
-def main(): ...
+async def process_carriers():
+    key = pick_key()
+    for carrier in carriers:
+        id = carrier["ID"]
+
+
+def main():
+    asyncio.run(process_carriers())
 
 
 if __name__ == "__main__":
