@@ -65,6 +65,7 @@ async def fetch_page(url: str) -> None:
                 soup = BeautifulSoup(html, "html.parser")  # Optional
                 # print(soup.prettify())
                 await browser.close()
+                break
         except Error as e:
             if "playwright install" in str(e):
                 print("Error: Playwright has no browsers installed")
@@ -172,3 +173,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
